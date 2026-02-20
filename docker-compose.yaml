@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: registry_postgres
+    environment:
+      POSTGRES_DB: registry
+      POSTGRES_USER: registry
+      POSTGRES_PASSWORD: registry123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5544:5432"
+    restart: unless-stopped
+
+  registry:
+    image: registry:2
+    container_name: registry
+    ports:
+      - "5432:5000"
+    environment:
+      REGISTRY_AUTH: token
+      REGISTRY_AUTH_TOKEN_REALM: http://192.168.13.73:6500/api/auth
+      REGISTRY_AUTH_TOKEN_SERVICE: registry
+      REGISTRY_AUTH_TOKEN_ISSUER: my-auth-server
+      REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /auth/auth.cert
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    volumes:
+      - ./backend/certs:/auth
+      - registry_data:/var/lib/registry
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: registry_backend
+    ports:
+      - "6500:6500"
+    environment:
+      PORT: 6500
+      HOST: "0.0.0.0"
+      REGISTRY_PUBLIC_URL: http://registry:5432
+      DB_HOST: postgres
+      DB_PORT: 5544
+      DB_USER: registry
+      DB_PASS: registry123
+      DB_NAME: registry
+      JWT_SECRET: supersecret
+    depends_on:
+      - postgres
+      - registry
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: registry_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:6500
+      PROXY_TARGET: http://backend:6500
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  registry_data:

@@ -1,0 +1,11 @@
+const express = require('express');
+const router = express.Router();
+const { login, createUser, deleteUser, getUsers } = require('../controllers/userController');
+const authenticateToken = require('../middleware/auth');
+
+router.post('/login', login);
+router.post('/', authenticateToken(['admin']), createUser);
+router.delete('/:id', authenticateToken(['admin']), deleteUser);
+router.get('/', authenticateToken(['admin']), getUsers);
+
+module.exports = router;
