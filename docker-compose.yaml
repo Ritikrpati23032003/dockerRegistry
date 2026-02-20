@@ -21,7 +21,7 @@ services:
       - "5432:5000"
     environment:
       REGISTRY_AUTH: token
-      REGISTRY_AUTH_TOKEN_REALM: http://54.209.196.244:6500/api/auth
+      REGISTRY_AUTH_TOKEN_REALM: http://34.202.165.71:6500/api/auth
       REGISTRY_AUTH_TOKEN_SERVICE: registry
       REGISTRY_AUTH_TOKEN_ISSUER: my-auth-server
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /auth/auth.cert
@@ -63,7 +63,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      VITE_API_URL: http://54.209.196.244:6500
+      VITE_API_URL: http://34.202.165.71:6500
       PROXY_TARGET: http://backend:6500
     volumes:
       - ./frontend:/app
