@@ -9,6 +9,7 @@ import RepositoryDetails from './pages/RepositoryDetails';
 import TagDetails from './pages/TagDetails';
 import UserManagement from './pages/UserManagement';
 import RecentActivities from './pages/RecentActivities';
+import SystemSettings from './pages/SystemSettings';
 
 const ProtectedRoute = ({ children, roles }: { children: React.ReactElement, roles?: string[] }) => {
   const { user, isLoading } = useAuth();
@@ -61,7 +62,16 @@ function App() {
                 <RecentActivities />
               </ProtectedRoute>
             } />
+
+            <Route path="/admin/settings" element={
+              <ProtectedRoute>
+                <SystemSettings />
+              </ProtectedRoute>
+            } />
+
           </Route>
+
+          
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

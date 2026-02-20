@@ -38,6 +38,8 @@ services:
     container_name: registry_backend
     ports:
       - "6500:6500"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       PORT: 6500
       HOST: "0.0.0.0"

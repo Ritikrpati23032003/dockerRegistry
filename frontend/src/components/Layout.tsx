@@ -12,7 +12,8 @@ import {
     X,
     Package,
     ShieldCheck,
-    Activity
+    Activity,
+    Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -32,6 +33,7 @@ const Layout = () => {
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         ...(user?.role === 'admin' ? [{ name: 'User Management', path: '/admin/users', icon: Users }] : []),
         { name: 'Recent Activities', path: '/recent-activities', icon: Activity },
+        ...(user?.role === 'admin' ? [{ name: 'System Settings', path: '/admin/settings', icon: Settings }] : []),
     ];
 
     return (

@@ -1,4 +1,5 @@
 const registryService = require('../services/registryService');
+const axios = require('axios');
 
 const listRepositories = async (req, res) => {
     try {
@@ -178,4 +179,52 @@ const getStatistics = async (req, res) => {
     }
 };
 
-module.exports = { listRepositories, getRepositoryDetails, getTagDetails, deleteTag, getStatistics };
+const triggerGC = async (req, res) => {
+    try {
+        const socketPath = '/var/run/docker.sock';
+        const containerName = 'registry';
+
+        // 1. Create Exec Instance
+        const execCreateUrl = `http://localhost/containers/${containerName}/exec`;
+        const execCreateConfig = {
+            socketPath,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        const execCreateBody = {
+            AttachStdout: true,
+            AttachStderr: true,
+            Cmd: ["bin/registry", "garbage-collect", "/etc/docker/registry/config.yml"]
+        };
+
+        const createRes = await axios.post(execCreateUrl, execCreateBody, execCreateConfig);
+        const execId = createRes.data.Id;
+
+        // 2. Start Exec Instance
+        const execStartUrl = `http://localhost/exec/${execId}/start`;
+        const execStartConfig = {
+            socketPath,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        const execStartBody = {
+            Detach: false,
+            Tty: false
+        };
+
+        const startRes = await axios.post(execStartUrl, execStartBody, execStartConfig);
+
+        // Axios returns the stream/response data. For simple GC output, it usually fits in data.
+        // Docker API returns raw stream with header. We might see some binary chars.
+        // For now, let's just return the data as is or stringified.
+        res.json({ message: 'Garbage Collection triggered', output: startRes.data });
+
+    } catch (err) {
+        console.error('GC Trigger Error:', err.message);
+        if (err.response) {
+            console.error('Docker API Error:', err.response.data);
+            return res.status(500).json({ message: 'Failed to trigger GC: ' + (err.response.data.message || err.message) });
+        }
+        res.status(500).json({ message: 'Failed to trigger GC' });
+    }
+};
+
+module.exports = { listRepositories, getRepositoryDetails, getTagDetails, deleteTag, getStatistics, triggerGC };

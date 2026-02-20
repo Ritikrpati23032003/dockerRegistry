@@ -95,13 +95,15 @@ const UserManagement = () => {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">User Management</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Manage access and roles</p>
                 </div>
-                <button
-                    onClick={openCreateModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-105"
-                >
-                    <UserPlus size={18} />
-                    Add User
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={openCreateModal}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-105"
+                    >
+                        <UserPlus size={18} />
+                        Add User
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
