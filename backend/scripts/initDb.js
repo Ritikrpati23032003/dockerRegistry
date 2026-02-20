@@ -2,8 +2,8 @@ const pool = require('../config/db');
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-const username = process.env.USERNAME || "admin";
-const password = process.env.PASSWORD || "admin123";
+const username = process.env.ADMIN_USERNAME || "admin";
+const password = process.env.ADMIN_PASSWORD || "admin123";
 const initDb = async () => {
     try {
         const sqlPath = path.join(__dirname, '../config/migrations/createUsers.sql');

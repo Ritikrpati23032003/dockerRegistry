@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
-import { Trash2, UserPlus, Shield, User, Loader2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Trash2, UserPlus, Shield, User, Loader2, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface UserData {
@@ -11,11 +12,13 @@ interface UserData {
 }
 
 const UserManagement = () => {
+    const { user: currentUser } = useAuth();
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [newUser, setNewUser] = useState({ username: '', password: '', role: 'user' });
-    const [creating, setCreating] = useState(false);
+    const [formData, setFormData] = useState({ username: '', password: '', role: 'user' });
+    const [editingUser, setEditingUser] = useState<UserData | null>(null);
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         fetchUsers();
@@ -32,19 +35,41 @@ const UserManagement = () => {
         }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setCreating(true);
+        setSubmitting(true);
         try {
-            await api.post('/users', newUser);
+            if (editingUser) {
+                // Update existing user
+                await api.put(`/users/${editingUser.id}`, {
+                    role: formData.role,
+                    ...(formData.password ? { password: formData.password } : {})
+                });
+            } else {
+                // Create new user
+                await api.post('/users', formData);
+            }
             setShowModal(false);
-            setNewUser({ username: '', password: '', role: 'user' });
+            setFormData({ username: '', password: '', role: 'user' });
+            setEditingUser(null);
             fetchUsers();
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Failed to create user');
+            alert(error.response?.data?.message || `Failed to ${editingUser ? 'update' : 'create'} user`);
         } finally {
-            setCreating(false);
+            setSubmitting(false);
         }
+    };
+
+    const openCreateModal = () => {
+        setEditingUser(null);
+        setFormData({ username: '', password: '', role: 'user' });
+        setShowModal(true);
+    };
+
+    const openEditModal = (user: UserData) => {
+        setEditingUser(user);
+        setFormData({ username: user.username, password: '', role: user.role });
+        setShowModal(true);
     };
 
     const handleDelete = async (id: number) => {
@@ -71,7 +96,7 @@ const UserManagement = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400">Manage access and roles</p>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={openCreateModal}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-105"
                 >
                     <UserPlus size={18} />
@@ -118,13 +143,25 @@ const UserManagement = () => {
                                     {new Date(user.created_at).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <button
-                                        onClick={() => handleDelete(user.id)}
-                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                        title="Delete User"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div className="flex justify-end gap-2">
+                                        <button
+                                            onClick={() => openEditModal(user)}
+                                            className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                            title="Edit User"
+                                        >
+                                            <Pencil size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(user.id)}
+                                            disabled={currentUser?.username === user.username}
+                                            className={`p-2 rounded-lg transition-colors ${currentUser?.username === user.username
+                                                ? 'text-gray-300 cursor-not-allowed'
+                                                : 'text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
+                                            title={currentUser?.username === user.username ? "Cannot delete yourself" : "Delete User"}
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </td>
                             </motion.tr>
                         ))}
@@ -149,33 +186,38 @@ const UserManagement = () => {
                             exit={{ scale: 0.95, opacity: 0 }}
                             className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-gray-200 dark:border-gray-800 z-10"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Add New User</h2>
-                            <form onSubmit={handleCreate} className="space-y-4">
+                            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+                                {editingUser ? 'Edit User' : 'Add New User'}
+                            </h2>
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
                                     <input
                                         type="text"
                                         required
-                                        value={newUser.username}
-                                        onChange={e => setNewUser({ ...newUser, username: e.target.value })}
-                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                        disabled={!!editingUser}
+                                        value={formData.username}
+                                        onChange={e => setFormData({ ...formData, username: e.target.value })}
+                                        className={`w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${editingUser ? 'opacity-60 cursor-not-allowed' : ''}`}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {editingUser ? 'New Password (leave blank to keep current)' : 'Password'}
+                                    </label>
                                     <input
                                         type="password"
-                                        required
-                                        value={newUser.password}
-                                        onChange={e => setNewUser({ ...newUser, password: e.target.value })}
+                                        required={!editingUser}
+                                        value={formData.password}
+                                        onChange={e => setFormData({ ...formData, password: e.target.value })}
                                         className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
                                     <select
-                                        value={newUser.role}
-                                        onChange={e => setNewUser({ ...newUser, role: e.target.value })}
+                                        value={formData.role}
+                                        onChange={e => setFormData({ ...formData, role: e.target.value })}
                                         className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                     >
                                         <option value="user">User</option>
@@ -193,10 +235,10 @@ const UserManagement = () => {
                                     </button>
                                     <button
                                         type="submit"
-                                        disabled={creating}
+                                        disabled={submitting}
                                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-70"
                                     >
-                                        {creating ? 'Creating...' : 'Create User'}
+                                        {submitting ? 'Saving...' : (editingUser ? 'Update User' : 'Create User')}
                                     </button>
                                 </div>
                             </form>
