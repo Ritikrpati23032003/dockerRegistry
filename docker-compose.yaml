@@ -13,12 +13,17 @@ services:
     ports:
       - "5544:5432"
     restart: unless-stopped
+    networks:
+      - registry_net
 
   registry:
     image: registry:2
     container_name: registry
     ports:
       - "5432:5000"
+    volumes:
+      - ./backend/certs:/auth
+      - registry_data:/var/lib/registry
     environment:
       REGISTRY_AUTH: token
       REGISTRY_AUTH_TOKEN_REALM: http://34.202.165.71:6500/api/auth
@@ -26,12 +31,9 @@ services:
       REGISTRY_AUTH_TOKEN_ISSUER: my-auth-server
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /auth/auth.cert
       REGISTRY_STORAGE_DELETE_ENABLED: "true"
-    volumes:
-      - ./backend/certs:/auth
-      - registry_data:/var/lib/registry
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
+    networks:
+      - registry_net
 
   backend:
     build: ./backend
@@ -42,20 +44,18 @@ services:
       PORT: 6500
       HOST: "0.0.0.0"
       REGISTRY_PUBLIC_URL: http://registry:5432
+      REGISTRY_CONTAINER_NAME: registry
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USER: registry
       DB_PASS: registry123
       DB_NAME: registry
-      JWT_SECRET: supersecret
+      JWT_SECRET: 2168e78adafca76a0566f8abcd0ed1ab5534baf24311088ee0ecee437869474a
     depends_on:
       - postgres
       - registry
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
+    networks:
+      - registry_net
 
   frontend:
     build: ./frontend
@@ -65,10 +65,13 @@ services:
     environment:
       VITE_API_URL: http://34.202.165.71:6500
       PROXY_TARGET: http://backend:6500
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     restart: unless-stopped
+    networks:
+      - registry_net
+
+networks:
+  registry_net:
+    driver: bridge
 
 volumes:
   postgres_data:
