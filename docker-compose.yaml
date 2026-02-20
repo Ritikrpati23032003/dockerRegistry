@@ -43,7 +43,7 @@ services:
     environment:
       PORT: 6500
       HOST: "0.0.0.0"
-      REGISTRY_PUBLIC_URL: http://registry:5432
+      REGISTRY_PUBLIC_URL: http://34.202.165.71:5432
       REGISTRY_CONTAINER_NAME: registry
       DB_HOST: postgres
       DB_PORT: 5432
