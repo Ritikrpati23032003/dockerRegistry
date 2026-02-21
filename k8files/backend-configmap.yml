@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: registry
+data:
+  PORT: "6500"
+  HOST: "0.0.0.0"
+  REGISTRY_PUBLIC_URL: "http://postgres:5432"
+  REGISTRY_CONTAINER_NAME: "registry"
