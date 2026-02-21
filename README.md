@@ -1,4 +1,4 @@
-# Registry UI Project
+# Registry UI Project 
 
 A full-stack application for managing and viewing Docker Registry content. This project consists of a React frontend and an Express backend, orchestrated with Docker Compose.
 
