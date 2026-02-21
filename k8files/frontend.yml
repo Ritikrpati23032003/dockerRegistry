@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: registry-frontend:TAG_REPLACE
+          image: 738983679783.dkr.ecr.us-east-1.amazonaws.com/registry-frontend:cfbf26f
           ports:
             - containerPort: 5173
           env:
