@@ -1,3 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: registry
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 6500
+      targetPort: 6500
+  type: ClusterIP
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,11 +28,10 @@ spec:
     spec:
       containers:
         - name: backend
-          image: 301678011164.dkr.ecr.us-east-1.amazonaws.com/registry-backend:fc1394a
+          image: 301678011164.dkr.ecr.us-east-1.amazonaws.com/registry-backend:8b3fa94
           ports:
             - containerPort: 6500
           env:
-            # ConfigMap values
             - name: PORT
               valueFrom:
                 configMapKeyRef:
@@ -40,7 +52,6 @@ spec:
                 configMapKeyRef:
                   name: backend-config
                   key: REGISTRY_CONTAINER_NAME
-            # Secret values
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
@@ -61,16 +72,3 @@ spec:
                 secretKeyRef:
                   name: backend-secret
                   key: JWT_SECRET
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend
-  namespace: registry
-spec:
-  selector:
-    app: backend
-  ports:
-    - port: 6500
-      targetPort: 6500
-  type: ClusterIP
