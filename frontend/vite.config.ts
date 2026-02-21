@@ -17,6 +17,9 @@ export default defineConfig(({ mode }) => {
       },
       host: true, // Needed for Docker port mapping
       port: 5173,
+       allowedHosts: [
+        'a15a1cbae7beb41f696abb3f8681f2fb-194050949.us-east-1.elb.amazonaws.com'
+      ],
     },
   };
 });
