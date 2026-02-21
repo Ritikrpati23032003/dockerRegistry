@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: registry
-          image: 301678011164.dkr.ecr.us-east-1.amazonaws.com/registry:9490546
+          image: 301678011164.dkr.ecr.us-east-1.amazonaws.com/registry:2a85b50
           ports:
             - containerPort: 5000
           env:
