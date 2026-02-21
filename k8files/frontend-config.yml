@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: registry
+data:
+  VITE_API_URL: "http://backend:6500"
+  PROXY_TARGET: "http://backend:6500"
