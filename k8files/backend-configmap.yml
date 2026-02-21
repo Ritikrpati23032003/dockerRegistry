@@ -6,6 +6,5 @@ metadata:
 data:
   PORT: "6500"
   HOST: "0.0.0.0"
-  REGISTRY_PUBLIC_URL: "http://10.100.109.245:5432"
-  REGISTRY_HOST: "10.100.109.245:5432"
-  REGISTRY_CONTAINER_NAME: "registry"
+  REGISTRY_PUBLIC_URL: "http://registry:5000"
+  REGISTRY_CONTAINER_NAME: registry
