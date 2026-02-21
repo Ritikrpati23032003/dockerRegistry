@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
     server: {
+      host: true,          // allow connections from outside localhost
+      port: 5173,          // dev server port
+      allowedHosts: 'all', // allow all hosts (for ELB/Docker)
       proxy: {
         '/api': {
           target: 'http://10.100.45.208:6500',
@@ -15,11 +18,6 @@ export default defineConfig(({ mode }) => {
           secure: false,
         },
       },
-      host: true, // Needed for Docker port mapping
-      port: 5173,
-       allowedHosts: [
-        'a15a1cbae7beb41f696abb3f8681f2fb-194050949.us-east-1.elb.amazonaws.com'
-      ],
     },
   };
 });
