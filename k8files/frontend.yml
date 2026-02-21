@@ -20,7 +20,7 @@ spec:
             - containerPort: 5173
           env:
             - name: VITE_API_URL
-              value: http://34.202.165.71:6500
+              value: http://10.100.45.208:6500
             - name: PROXY_TARGET
               value: http://backend:6500
 ---
